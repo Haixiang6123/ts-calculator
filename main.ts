@@ -4,9 +4,10 @@
         private output: HTMLDivElement
         private container: HTMLDivElement
 
-        public n1: number
-        public n2: number
-        public operator: string
+        public n1: string = null
+        public n2: string = null
+        public operator: string = null
+        public result: string = null
 
         public keys: Array<Array<string>> = [
             ['Clear', '÷'],
@@ -71,7 +72,7 @@
             })
         }
 
-        bindEvents() {
+        bindEvents(): void {
             this.container.addEventListener('click', (event) => {
                 // Check target type
                 if (!(event.target instanceof HTMLButtonElement)) {
@@ -82,51 +83,70 @@
             })
         }
 
-        calc(event) {
+        updateNumber(text: string): void {
+            // Check operator
+            if (this.operator) {
+                // Update n2
+                this.n2 = (this.n2 ? this.n2.toString() : '') + text
+                this.span.textContent = this.n2.toString()
+            }
+            else {
+                // Update n1
+                this.n1 = (this.n1 ? this.n1.toString() : '') + text
+                this.span.textContent = this.n1.toString()
+            }
+        }
+
+        updateResult(): void {
+            let result 
+            let n1: number = parseFloat(this.n1)
+            let n2: number = parseFloat(this.n2)
+            if (this.operator === '+') {
+                result = n1 + n2
+            }
+            else if (this.operator === '-') {
+                result = n1 - n2
+            }
+            else if (this.operator === '÷') {
+                result = n1 / n2
+            }
+            else if (this.operator === 'x') {
+                result = n1 * n2
+            }
+            result = result.toPrecision(3).replace(/0+$/g, '').replace(/0+e/g, '')
+            this.span.textContent = result
+            this.n1 = null
+            this.n2 = null
+            this.operator = null
+            this.result = result
+        }
+
+        updateOperator(text) {
+            if (this.n1 === null) {
+                this.n1 = this.result
+            }
+            // Update Operator
+            this.operator = text
+        }
+
+        calc(event): void {
             let text: string = event.target.textContent
-            if ('0123456789'.indexOf(text) >= 0) {
-                // Check operator
-                if (this.operator) {
-                    // Update n2
-                    if (this.n2) {
-                        this.n2 = parseInt(this.n2.toString() + text)
-                    }
-                    else {
-                        this.n2 = parseInt(text)
-                    }
-                    this.span.textContent = this.n2.toString()
-                }
-                else {
-                    // Update n1
-                    if (this.n1) {
-                        this.n1 = parseInt(this.n1.toString() + text)
-                    }
-                    else {
-                        this.n1 = parseInt(text)
-                    }
-                    this.span.textContent = this.n1.toString()
-                }
+            if ('0123456789.'.indexOf(text) >= 0) {
+                this.updateNumber(text)
             }
             else if ('+-x÷'.indexOf(text) >= 0) {
-                // Update Operator
-                this.operator = text
+                this.updateOperator(text)
             }
             else if ('='.indexOf(text) >= 0) {
                 // Update result
-                let result
-                if (this.operator === '+') {
-                    result = this.n1 + this.n2
-                }
-                else if (this.operator === '-') {
-                    result = this.n1 - this.n2
-                }
-                else if (this.operator === '÷') {
-                    result = this.n1 / this.n2
-                }
-                else if (this.operator === 'x') {
-                    result = this.n1 * this.n2
-                }
-                this.span.textContent = result.toString()
+                this.updateResult()
+            }
+            else if (text === 'Clear') {
+                this.n1 = null
+                this.n2 = null
+                this.operator = null
+                this.result = null
+                this.span.textContent = '0'
             }
         }
     }
